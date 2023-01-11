@@ -33,6 +33,15 @@ ENV FLOOD_FACTOR ${flood_factor:-0}
 
 EXPOSE 9080
 WORKDIR /opt/microservices
+
+#install all dependencies to auto instrumentation
+RUN opentelemetry-bootstrap -a install 
 #RUN python -m unittest discover
 
-CMD ["python", "productpage.py", "9080"]
+ENV OTEL_SERVICE_NAME=productpage 
+ENV OTEL_TRACES_EXPORTER=console 
+ENV OTEL_METRICS_EXPORTER=console 
+# ENV OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=0.0.0.0:4317
+
+CMD ["opentelemetry-instrument", "python" "productpage.py","9080"]
+# CMD ["python", "productpage.py", "9080"]
