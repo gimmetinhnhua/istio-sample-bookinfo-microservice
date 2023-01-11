@@ -44,5 +44,5 @@ ENV OTEL_METRICS_EXPORTER=console
 # ENV OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=0.0.0.0:4317
 # opentelemetry-instrument
 
-CMD ["bash","-c", "/usr/local/bin/opentelemetry-instrument", "python" "productpage.py","9080"]
+CMD ["/bin/bash","-c", "/usr/local/bin/opentelemetry-instrument python productpage.py 9080"]
 # CMD ["python", "productpage.py", "9080"]
