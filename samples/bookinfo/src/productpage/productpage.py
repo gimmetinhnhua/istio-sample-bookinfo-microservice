@@ -19,12 +19,12 @@ from __future__ import print_function
 from flask_bootstrap import Bootstrap
 from flask import Flask, request, session, render_template, redirect, url_for
 from flask import _request_ctx_stack as stack
-from jaeger_client import Tracer, ConstSampler
-from jaeger_client.reporter import NullReporter
-from jaeger_client.codecs import B3Codec
-from opentracing.ext import tags
-from opentracing.propagation import Format
-from opentracing_instrumentation.request_context import get_current_span, span_in_context
+# from jaeger_client import Tracer, ConstSampler
+# from jaeger_client.reporter import NullReporter
+# from jaeger_client.codecs import B3Codec
+# from opentracing.ext import tags
+# from opentracing.propagation import Format
+# from opentracing_instrumentation.request_context import get_current_span, span_in_context
 import simplejson as json
 import requests
 import sys
@@ -115,60 +115,60 @@ service_dict = {
 # extract/inject context, etc.
 
 # A very basic OpenTracing tracer (with null reporter)
-tracer = Tracer(
-    one_span_per_rpc=True,
-    service_name='productpage',
-    reporter=NullReporter(),
-    sampler=ConstSampler(decision=True),
-    extra_codecs={Format.HTTP_HEADERS: B3Codec()}
-)
+# tracer = Tracer(
+#     one_span_per_rpc=True,
+#     service_name='productpage',
+#     reporter=NullReporter(),
+#     sampler=ConstSampler(decision=True),
+#     extra_codecs={Format.HTTP_HEADERS: B3Codec()}
+# )
 
 
-def trace():
-    '''
-    Function decorator that creates opentracing span from incoming b3 headers
-    '''
-    def decorator(f):
-        def wrapper(*args, **kwargs):
-            request = stack.top.request
-            try:
-                # Create a new span context, reading in values (traceid,
-                # spanid, etc) from the incoming x-b3-*** headers.
-                span_ctx = tracer.extract(
-                    Format.HTTP_HEADERS,
-                    dict(request.headers)
-                )
-                # Note: this tag means that the span will *not* be
-                # a child span. It will use the incoming traceid and
-                # spanid. We do this to propagate the headers verbatim.
-                rpc_tag = {tags.SPAN_KIND: tags.SPAN_KIND_RPC_SERVER}
-                span = tracer.start_span(
-                    operation_name='op', child_of=span_ctx, tags=rpc_tag
-                )
-            except Exception as e:
-                # We failed to create a context, possibly due to no
-                # incoming x-b3-*** headers. Start a fresh span.
-                # Note: This is a fallback only, and will create fresh headers,
-                # not propagate headers.
-                span = tracer.start_span('op')
-            with span_in_context(span):
-                r = f(*args, **kwargs)
-                return r
-        wrapper.__name__ = f.__name__
-        return wrapper
-    return decorator
+# def trace():
+#     '''
+#     Function decorator that creates opentracing span from incoming b3 headers
+#     '''
+#     def decorator(f):
+#         def wrapper(*args, **kwargs):
+#             request = stack.top.request
+#             try:
+#                 # Create a new span context, reading in values (traceid,
+#                 # spanid, etc) from the incoming x-b3-*** headers.
+#                 span_ctx = tracer.extract(
+#                     Format.HTTP_HEADERS,
+#                     dict(request.headers)
+#                 )
+#                 # Note: this tag means that the span will *not* be
+#                 # a child span. It will use the incoming traceid and
+#                 # spanid. We do this to propagate the headers verbatim.
+#                 rpc_tag = {tags.SPAN_KIND: tags.SPAN_KIND_RPC_SERVER}
+#                 span = tracer.start_span(
+#                     operation_name='op', child_of=span_ctx, tags=rpc_tag
+#                 )
+#             except Exception as e:
+#                 # We failed to create a context, possibly due to no
+#                 # incoming x-b3-*** headers. Start a fresh span.
+#                 # Note: This is a fallback only, and will create fresh headers,
+#                 # not propagate headers.
+#                 span = tracer.start_span('op')
+#             with span_in_context(span):
+#                 r = f(*args, **kwargs)
+#                 return r
+#         wrapper.__name__ = f.__name__
+#         return wrapper
+#     return decorator
 
 
 def getForwardHeaders(request):
     headers = {}
 
     # x-b3-*** headers can be populated using the opentracing span
-    span = get_current_span()
+    # span = get_current_span()
     carrier = {}
-    tracer.inject(
-        span_context=span.context,
-        format=Format.HTTP_HEADERS,
-        carrier=carrier)
+    # tracer.inject(
+    #     span_context=span.context,
+    #     format=Format.HTTP_HEADERS,
+    #     carrier=carrier)
 
     headers.update(carrier)
 
@@ -181,7 +181,7 @@ def getForwardHeaders(request):
         # All applications should propagate x-request-id. This header is
         # included in access log statements and is used for consistent trace
         # sampling and log sampling decisions in Istio.
-        'x-request-id',
+        # 'x-request-id',
 
         # Lightstep tracing header. Propagate this if you use lightstep tracing
         # in Istio (see
@@ -189,26 +189,26 @@ def getForwardHeaders(request):
         # Note: this should probably be changed to use B3 or W3C TRACE_CONTEXT.
         # Lightstep recommends using B3 or TRACE_CONTEXT and most application
         # libraries from lightstep do not support x-ot-span-context.
-        'x-ot-span-context',
+        # 'x-ot-span-context',
 
         # Datadog tracing header. Propagate these headers if you use Datadog
         # tracing.
-        'x-datadog-trace-id',
-        'x-datadog-parent-id',
-        'x-datadog-sampling-priority',
+        # 'x-datadog-trace-id',
+        # 'x-datadog-parent-id',
+        # 'x-datadog-sampling-priority',
 
         # W3C Trace Context. Compatible with OpenCensusAgent and Stackdriver Istio
         # configurations.
-        'traceparent',
-        'tracestate',
+        # 'traceparent',
+        # 'tracestate',
 
         # Cloud trace context. Compatible with OpenCensusAgent and Stackdriver Istio
         # configurations.
-        'x-cloud-trace-context',
+        # 'x-cloud-trace-context',
 
         # Grpc binary trace context. Compatible with OpenCensusAgent nad
         # Stackdriver Istio configurations.
-        'grpc-trace-bin',
+        # 'grpc-trace-bin',
 
         # b3 trace headers. Compatible with Zipkin, OpenCensusAgent, and
         # Stackdriver Istio configurations. Commented out since they are
@@ -220,7 +220,7 @@ def getForwardHeaders(request):
         # 'x-b3-flags',
 
         # SkyWalking trace headers.
-        'sw8',
+        # 'sw8',
 
         # Application-specific headers to forward.
         'user-agent',
@@ -302,7 +302,7 @@ def floodReviews(product_id, headers):
 
 
 @app.route('/productpage')
-@trace()
+#@trace()
 def front():
     product_id = 0  # TODO: replace default value
     headers = getForwardHeaders(request)
@@ -331,7 +331,7 @@ def productsRoute():
 
 
 @app.route('/api/v1/products/<product_id>')
-@trace()
+#@trace()
 def productRoute(product_id):
     headers = getForwardHeaders(request)
     status, details = getProductDetails(product_id, headers)
@@ -339,7 +339,7 @@ def productRoute(product_id):
 
 
 @app.route('/api/v1/products/<product_id>/reviews')
-@trace()
+#@trace()
 def reviewsRoute(product_id):
     headers = getForwardHeaders(request)
     status, reviews = getProductReviews(product_id, headers)
@@ -347,7 +347,7 @@ def reviewsRoute(product_id):
 
 
 @app.route('/api/v1/products/<product_id>/ratings')
-@trace()
+#@trace()
 def ratingsRoute(product_id):
     headers = getForwardHeaders(request)
     status, ratings = getProductRatings(product_id, headers)
