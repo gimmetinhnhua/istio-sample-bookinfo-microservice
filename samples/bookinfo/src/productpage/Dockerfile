@@ -39,8 +39,8 @@ RUN opentelemetry-bootstrap -a install
 #RUN python -m unittest discover
 
 ENV OTEL_SERVICE_NAME=productpage 
-ENV OTEL_TRACES_EXPORTER=console 
-ENV OTEL_METRICS_EXPORTER=console 
+ENV OTEL_TRACES_EXPORTER=http://localhost:4318 
+ENV OTEL_METRICS_EXPORTER=http://localhost:4318  
 # ENV OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=0.0.0.0:4317
 # opentelemetry-instrument
 
